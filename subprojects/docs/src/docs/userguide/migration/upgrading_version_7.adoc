@@ -1432,7 +1432,7 @@ See the <<artifact_transforms#sec:abm_artifact_transforms,user manual>> for more
 [[gmm_modification_after_publication_populated]]
 ==== Modifying Gradle Module Metadata after a publication has been populated
 
-Altering the link:publishing_gradle_module_metadata.html[GMM] (e.g. changing a component configuration variants) *after* a Maven or Ivy publication has been populated from their components is now deprecated. This feature will be removed in Gradle 9.0.
+Altering the link:publishing_gradle_module_metadata.html[GMM] (e.g., changing a component configuration variants) *after* a Maven or Ivy publication has been populated from their components is now deprecated. This feature will be removed in Gradle 9.0.
 
 Eager population of the publication can happen if the following methods are called:
 
