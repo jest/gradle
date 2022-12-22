@@ -22,7 +22,6 @@ import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ProjectDependencyObservedListener
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
@@ -33,6 +32,7 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.file.collections.FileCollectionObservationListener
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
@@ -72,6 +72,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
+import org.gradle.internal.scripts.ScriptFileResolvedListener
 import org.gradle.util.Path
 import java.io.File
 import java.util.EnumSet
@@ -86,7 +87,7 @@ class ConfigurationCacheFingerprintWriter(
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val taskExecutionTracker: TaskExecutionTracker,
     private val environmentChangeTracker: EnvironmentChangeTracker,
-    private val inputTrackingState: InputTrackingState,
+    private val inputTrackingState: InputTrackingState
 ) : ValueSourceProviderFactory.ValueListener,
     ValueSourceProviderFactory.ComputationListener,
     WorkInputListener,
@@ -96,7 +97,9 @@ class ConfigurationCacheFingerprintWriter(
     ProjectDependencyObservedListener,
     CoupledProjectsListener,
     FileResourceListener,
+    ScriptFileResolvedListener,
     FeatureFlagListener,
+    FileCollectionObservationListener,
     ConfigurationCacheEnvironment.Listener {
 
     interface Host {
@@ -253,19 +256,21 @@ class ConfigurationCacheFingerprintWriter(
     override fun fileOpened(file: File, consumer: String?) {
         if (isInputTrackingDisabled() || isExecutingTask()) {
             // Ignore files that are read as part of the task actions. These should really be task
-            // inputs. Otherwise, we risk fingerprinting temporary files that will be gone at the
-            // end of the build.
+            // inputs. Otherwise, we risk fingerprinting files such as:
+            // - temporary files that will be gone at the end of the build.
+            // - files in the output directory, for incremental tasks or tasks that remove stale outputs
             return
         }
         captureFile(file)
         reportUniqueFileInput(file, consumer)
     }
 
-    override fun fileCollectionObserved(fileCollection: FileCollection, consumer: String) {
-        if (isInputTrackingDisabled()) {
+    override fun fileCollectionObserved(fileCollection: FileCollectionInternal) {
+        if (isInputTrackingDisabled() || isExecutingTask()) {
+            // See #fileOpened() above
             return
         }
-        captureWorkInputs(consumer) { it(fileCollection as FileCollectionInternal) }
+        captureWorkInputs(host.location(null).toString()) { it(fileCollection) }
     }
 
     override fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
@@ -695,6 +700,10 @@ class ConfigurationCacheFingerprintWriter(
         override fun write(value: ConfigurationCacheFingerprint) {
             writer.write(ProjectSpecificFingerprint.ProjectFingerprint(project, value))
         }
+    }
+
+    override fun onScriptFileResolved(scriptFile: File) {
+        fileObserved(scriptFile)
     }
 }
 

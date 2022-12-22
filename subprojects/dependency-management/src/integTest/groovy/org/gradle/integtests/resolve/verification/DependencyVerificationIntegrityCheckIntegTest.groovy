@@ -257,9 +257,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
+        assertConfigCacheDiscarded()
 
         where:
         terse << [true, false]
@@ -307,9 +305,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
+        assertConfigCacheDiscarded()
 
         where:
         terse << [true, false]
@@ -360,6 +356,8 @@ This can indicate that a dependency has been compromised. Please carefully verif
         """
 
         when:
+        //TODO: remove this once dependency verification stops triggering dependency resolution at execution time
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         fails "resolve"
 
         then:
@@ -424,9 +422,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         then:
         failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a '$wrong' checksum of 'invalid' but was""")
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
+        assertConfigCacheDiscarded()
 
         where:
         wrong  | md5                                | sha1
@@ -532,9 +528,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
+        assertConfigCacheDiscarded()
 
         where:
         terse << [true, false]
@@ -596,10 +590,10 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         fails "compileJava"
 
         then:
-        failure.assertHasDescription terse ? """Dependency verification failed for configuration ':buildSrc:runtimeClasspath'
+        failure.assertHasDescription terse ? """Dependency verification failed for configuration ':buildSrc:buildScriptClasspath'
 2 artifacts failed verification:
   - bar-1.0.jar (org:bar:1.0) from repository maven
-  - bar-1.0.pom (org:bar:1.0) from repository maven""" : """Dependency verification failed for configuration ':buildSrc:runtimeClasspath':
+  - bar-1.0.pom (org:bar:1.0) from repository maven""" : """Dependency verification failed for configuration ':buildSrc:buildScriptClasspath':
   - On artifact bar-1.0.jar (org:bar:1.0) in repository 'maven': checksum is missing from verification metadata."""
 
         where:
@@ -648,9 +642,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
   - bar-1.0.pom (org:bar:1.0) from repository maven""" : """Dependency verification failed for configuration ':included:compileClasspath':
   - On artifact bar-1.0.jar (org:bar:1.0) in repository 'maven': checksum is missing from verification metadata."""
 
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
+        assertConfigCacheDiscarded()
 
         where:
         terse << [true, false]
@@ -907,8 +899,9 @@ This can indicate that a dependency has been compromised. Please carefully verif
             configurations.compileClasspath.resolutionStrategy.disableDependencyVerification()
 
             tasks.register("resolveRuntime") {
+                def runtimeClasspath = configurations.runtimeClasspath
                 doLast {
-                    println configurations.runtimeClasspath.files
+                    println runtimeClasspath.files
                 }
             }
         """
@@ -976,9 +969,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         failure.assertThatCause(containsText("""Dependency verification failed for configuration ':compileClasspath'
 One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""))
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
+        assertConfigCacheDiscarded()
     }
 
     @ToBeFixedForConfigurationCache
@@ -1223,8 +1214,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         failure.assertThatCause(containsText("""Dependency verification failed for configuration ':compileClasspath'
 One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""))
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
+        assertConfigCacheDiscarded()
     }
 }
