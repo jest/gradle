@@ -213,6 +213,11 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     }
 
     @Override
+    protected List<String> getAllArgs() {
+        return getAllArgsWithAgentStatus(false);
+    }
+
+    @Override
     protected GradleHandle createGradleHandle() {
         configureConsoleCommandLineArgs();
         return super.createGradleHandle();

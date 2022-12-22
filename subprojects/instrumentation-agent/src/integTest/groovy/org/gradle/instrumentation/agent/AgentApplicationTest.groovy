@@ -26,7 +26,7 @@ import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import spock.lang.Requires
 
 class AgentApplicationTest extends AbstractIntegrationSpec {
-    def "agent is disabled by default"() {
+    def "default agent status is correct for current executor"() {
         given:
         withDumpAgentStatusTask()
 
@@ -34,7 +34,8 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         succeeds()
 
         then:
-        agentWasNotApplied()
+        def shouldApplyAgent = GradleContextualExecuter.daemon
+        agentStatusWas(shouldApplyAgent)
     }
 
     def "agent is not applied if disabled in the command-line"() {

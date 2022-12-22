@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.util.GradleVersion;
 
@@ -57,6 +58,10 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
 
     @Override
     protected List<String> getAllArgs() {
+        return getAllArgsWithAgentStatus(true);
+    }
+
+    protected List<String> getAllArgsWithAgentStatus(boolean enableAgent) {
         List<String> args = new ArrayList<String>(super.getAllArgs());
         if(!isQuiet() && isAllowExtraLogging()) {
             if (!containsLoggingArgument(args)) {
@@ -69,6 +74,12 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
             args.add(String.format("-Duser.home=%s", getUserHomeDir().getPath()));
         }
 
+        if (enableAgent) {
+            String instrumentationAgentArg = "-D" + DaemonBuildOptions.ApplyInstrumentationAgentOption.GRADLE_PROPERTY + "=";
+            if (args.stream().noneMatch(a -> a.startsWith(instrumentationAgentArg))) {
+                args.add(instrumentationAgentArg + "true");
+            }
+        }
         return args;
     }
 
