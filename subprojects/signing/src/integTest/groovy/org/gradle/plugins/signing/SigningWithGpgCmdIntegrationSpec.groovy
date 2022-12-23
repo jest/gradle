@@ -17,7 +17,7 @@
 package org.gradle.plugins.signing
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.Requires
+import org.gradle.test.fixtures.condition.Requires
 
 @Requires(SigningTestPreconditions.GpgAvailable)
 class SigningWithGpgCmdIntegrationSpec extends SigningIntegrationSpec {

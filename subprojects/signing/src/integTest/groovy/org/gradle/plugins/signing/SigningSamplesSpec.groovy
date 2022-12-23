@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.gradle.util.Requires
+import org.gradle.test.fixtures.condition.Requires
 import org.junit.Rule
 
 class SigningSamplesSpec extends AbstractSampleIntegrationTest {

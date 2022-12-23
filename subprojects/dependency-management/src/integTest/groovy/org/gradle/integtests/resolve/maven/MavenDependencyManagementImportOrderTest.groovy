@@ -17,8 +17,8 @@
 package org.gradle.integtests.resolve.maven;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import spock.lang.Issue
 
 class MavenDependencyManagementImportOrderTest extends AbstractIntegrationSpec {
@@ -37,7 +37,7 @@ dependencies {
 	}
 }
 task verifyUndertowVersion {
-	doLast {	
+	doLast {
 		def fileNames = configurations.test.files.collect { it.name }
 		assert fileNames.contains('undertow-servlet-1.4.11.Final.jar')
 		assert !fileNames.contains('undertow-servlet-1.2.9.Final.jar')

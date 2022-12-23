@@ -19,8 +19,8 @@ package org.gradle.integtests
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import spock.lang.Issue
 
 class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpec {

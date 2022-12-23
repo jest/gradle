@@ -20,8 +20,8 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.hamcrest.CoreMatchers.allOf
