@@ -189,6 +189,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @Internal
     @VisibleForTesting
+    ListenerBroadcast<TestListener> getTestListenerBroadcaster() {
+        return testListenerBroadcaster;
+    }
+
+    @Internal
+    @VisibleForTesting
     ListenerBroadcast<TestOutputListener> getTestOutputListenerBroadcaster() {
         return testOutputListenerBroadcaster;
     }

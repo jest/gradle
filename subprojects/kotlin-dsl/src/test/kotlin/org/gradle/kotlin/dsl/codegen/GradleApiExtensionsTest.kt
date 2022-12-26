@@ -58,7 +58,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             ClassAndGroovyNamedArguments::class
         ) {
 
-            assertGeneratedJarHash("db056f693227fa24b894a587e06a78c7")
+            assertGeneratedJarHash("30fee7a97aedbcaee476f1c89fc28d70")
         }
     }
 
@@ -195,11 +195,11 @@ class GradleApiExtensionsTest : TestWithClassPath() {
                     subject.mapWithOtherParameters(foo = "foo", bar = 42)
                     subject.mapWithOtherParameters("foo", 42, "bar" to 23L, "bazar" to "cathedral")
 
-                    subject.mapWithLastSamAndOtherParameters(foo = "foo") { println(it.toUpperCase()) }
-                    subject.mapWithLastSamAndOtherParameters("foo", "bar" to 23L, "bazar" to "cathedral") { println(it.toUpperCase()) }
-                    subject.mapWithLastSamAndOtherParameters("foo", *arrayOf("bar" to 23L, "bazar" to "cathedral")) { println(it.toUpperCase()) }
-                    subject.mapWithLastSamAndOtherParameters(foo = "foo", bar = Consumer { println(it.toUpperCase()) })
-                    subject.mapWithLastSamAndOtherParameters(foo = "foo", bar = Consumer<String> { println(it.toUpperCase()) })
+                    subject.mapWithLastSamAndOtherParameters(foo = "foo") { println(it.uppercase()) }
+                    subject.mapWithLastSamAndOtherParameters("foo", "bar" to 23L, "bazar" to "cathedral") { println(it.uppercase()) }
+                    subject.mapWithLastSamAndOtherParameters("foo", *arrayOf("bar" to 23L, "bazar" to "cathedral")) { println(it.uppercase()) }
+                    subject.mapWithLastSamAndOtherParameters(foo = "foo", bar = Consumer { println(it.uppercase()) })
+                    subject.mapWithLastSamAndOtherParameters(foo = "foo", bar = Consumer<String> { println(it.uppercase()) })
                 }
                 """
             )
