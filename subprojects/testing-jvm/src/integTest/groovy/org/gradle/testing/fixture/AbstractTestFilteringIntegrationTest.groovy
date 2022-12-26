@@ -25,7 +25,6 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
     abstract String getImports()
     abstract String getFramework()
     abstract String getDependencies()
-    abstract boolean isDryRun()
 
     def setup() {
         buildFile << """
@@ -279,7 +278,6 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
     @Issue("https://github.com/gradle/gradle/issues/1571")
     def "option --tests filter in combined with #includeType"() {
         given:
-        ignoreWhenDryRun()
         buildFile << """
         test {
             $includeConfig
@@ -289,12 +287,13 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         when:
         createTestABC()
 
-        then:
+        and:
         succeeds('test', '--tests', '*ATest*', '--tests', '*BTest*', '--info')
 
-        output.contains('ATest!')
-        !output.contains('BTest!')
-        !output.contains('CTest!')
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted("ATest")
+        result.assertTestClassesNotExecuted("BTest", "CTest")
 
         where:
         includeType                   | includeConfig
@@ -305,7 +304,6 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
 
     def "invoking testNameIncludePatterns does not influence include/exclude filter"() {
         given:
-        ignoreWhenDryRun()
         buildFile << """
         test {
             include '*ATest*', '*BTest*'
@@ -316,17 +314,17 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         when:
         createTestABC()
 
-        then:
+        and:
         succeeds('test', '--info')
 
-        !output.contains('ATest!')
-        output.contains('BTest!')
-        !output.contains('CTest!')
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted("BTest")
+        result.assertTestClassesNotExecuted("ATest", "CTest")
     }
 
     def "invoking filter.includePatterns not disable include/exclude filter"() {
         given:
-        ignoreWhenDryRun()
         buildFile << """
         test {
             include '*ATest*', '*BTest*'
@@ -337,17 +335,17 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         when:
         createTestABC()
 
-        then:
+        and:
         succeeds('test', '--info')
 
-        !output.contains('ATest!')
-        output.contains('BTest!')
-        !output.contains('CTest!')
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted("BTest")
+        result.assertTestClassesNotExecuted("ATest", "CTest")
     }
 
     def "can exclude tests"() {
         given:
-        ignoreWhenDryRun()
         buildFile << """
         test {
             filter.excludeTestsMatching("*BTest.test*")
@@ -367,18 +365,9 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         executionResult.testClass("ATest").assertTestsExecuted("test")
         !executionResult.testClassExists("BTest")
         executionResult.testClass("CTest").assertTestsExecuted("test")
-
-        and:
-        output.contains('ATest!')
-        !output.contains('BTest!')
-        output.contains('CTest!')
     }
 
-    protected ignoreWhenDryRun() {
-        Assume.assumeFalse(isDryRun())
-    }
-
-    private createTestABC(){
+    private createTestABC() {
         file('src/test/java/ATest.java') << """import $imports;
             public class ATest {
                 @Test public void test() { System.out.println("ATest!"); }

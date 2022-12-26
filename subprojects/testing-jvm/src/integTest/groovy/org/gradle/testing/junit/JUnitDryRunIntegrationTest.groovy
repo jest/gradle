@@ -27,8 +27,6 @@ import static org.gradle.testing.fixture.JUnitCoverage.getVINTAGE
 @TargetCoverage({ JUNIT_4_LATEST + VINTAGE })
 class JUnitDryRunIntegrationTest extends JUnitFilteringIntegrationTest {
 
-    boolean dryRun = true
-
     @Override
     protected ExecutionResult succeeds(String... tasks) {
         result = executer.withTasks(*tasks, "--test-dry-run").run()

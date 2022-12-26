@@ -30,7 +30,6 @@ class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTes
 
     String imports = "org.testng.annotations.*"
     String framework = "TestNG"
-    boolean dryRun = false
 
     @Override
     String getDependencies() {

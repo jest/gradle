@@ -29,7 +29,6 @@ import static org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec.*
 class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
 
     String imports = "org.junit.*"
-    boolean dryRun = false
 
     @Override
     String getFramework() {

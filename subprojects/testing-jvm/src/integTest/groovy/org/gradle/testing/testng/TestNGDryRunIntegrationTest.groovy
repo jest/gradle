@@ -24,8 +24,6 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 @TargetVersions("6.3.1")
 class TestNGDryRunIntegrationTest extends TestNGFilteringIntegrationTest {
 
-    boolean dryRun = true
-
     @Override
     protected ExecutionResult succeeds(String... tasks) {
         result = executer.withTasks(*tasks, "--test-dry-run").run()
