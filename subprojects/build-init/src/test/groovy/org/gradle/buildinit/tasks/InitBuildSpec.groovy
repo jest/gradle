@@ -17,6 +17,7 @@
 package org.gradle.buildinit.tasks
 
 import org.gradle.api.GradleException
+import org.gradle.api.internal.tasks.userinput.UserInputHandler
 import org.gradle.buildinit.InsecureProtocolOption
 import org.gradle.buildinit.plugins.internal.BuildConverter
 import org.gradle.buildinit.plugins.internal.BuildInitializer
@@ -52,9 +53,9 @@ class InitBuildSpec extends Specification {
 
     def setup() {
         init = TestUtil.create(testDir.testDirectory).task(InitBuild)
-        projectLayoutRegistry = Mock(ProjectLayoutSetupRegistry.class)
-        projectSetupDescriptor = Mock(BuildInitializer.class)
-        buildConverter = Mock(BuildConverter.class)
+        projectLayoutRegistry = Mock(ProjectLayoutSetupRegistry)
+        projectSetupDescriptor = Mock(BuildInitializer)
+        buildConverter = Mock(BuildConverter)
         init.projectLayoutRegistry = projectLayoutRegistry
         init.insecureProtocol.convention(InsecureProtocolOption.WARN)
     }
@@ -137,19 +138,40 @@ class InitBuildSpec extends Specification {
         e.message == "The requested DSL 'kotlin' is not supported for 'some-type' build type"
     }
 
-    def "should throw exception if project name is not supported for the specified type"() {
+    def "should use project name as specified"() {
         given:
-        projectLayoutRegistry.get("some-type") >> projectSetupDescriptor
-        projectSetupDescriptor.id >> "some-type"
-        projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
-        projectSetupDescriptor.dsls >> [GROOVY]
-        projectSetupDescriptor.testFrameworks >> [NONE]
-        projectSetupDescriptor.supportsProjectName()
-        init.type = "some-type"
+        projectSetupDescriptor.supportsProjectName() >> true
         init.projectName = "other"
 
         when:
-        init.setupProjectLayout()
+        def projectName = init.getProjectName(Mock(UserInputHandler), projectSetupDescriptor)
+
+        then:
+        projectName == "other"
+    }
+
+    def "should use project name as asked for"() {
+        given:
+        projectSetupDescriptor.supportsProjectName() >> true
+        def userInputHandler = Mock(UserInputHandler)
+        userInputHandler.askQuestion("Project name", _ as String) >> "newProjectName"
+
+
+        when:
+        def projectName = init.getProjectName(userInputHandler, projectSetupDescriptor)
+
+        then:
+        projectName == "newProjectName"
+    }
+
+
+    def "should throw exception if project name is not supported for the specified type"() {
+        given:
+        projectSetupDescriptor.id >> "some-type"
+        init.projectName = "invalidProjectName"
+
+        when:
+        init.getProjectName(Mock(UserInputHandler), projectSetupDescriptor)
 
         then:
         GradleException e = thrown()
