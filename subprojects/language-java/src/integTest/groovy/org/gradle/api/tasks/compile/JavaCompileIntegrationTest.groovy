@@ -19,7 +19,7 @@ package org.gradle.api.tasks.compile
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.util.IntegTestPreconditions
+import org.gradle.test.fixtures.IntegTestPreconditions
 import org.gradle.test.fixtures.condition.Requires
 import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.gradle.util.internal.Resources
