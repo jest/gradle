@@ -22,7 +22,6 @@ import org.gradle.internal.agents.InstrumentingClassLoader;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.io.StreamByteBuffer;
 
-import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
@@ -34,6 +33,7 @@ import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -43,9 +43,10 @@ import java.util.jar.JarFile;
  * This class is thread-safe.
  */
 public class TransformReplacer implements Closeable {
-    private static final Loader SKIP_INSTRUMENTATION = new Loader();
+    private final Loader skipInstrumentation = new Loader();
     private final ConcurrentMap<ProtectionDomain, Loader> loaders;
     private final TransformedClassPath classPath;
+    private final AtomicBoolean closed = new AtomicBoolean();
 
     public TransformReplacer(TransformedClassPath classPath) {
         this.loaders = new ConcurrentHashMap<ProtectionDomain, Loader>();
@@ -81,13 +82,21 @@ public class TransformReplacer implements Closeable {
         Loader transformLoader = loaders.get(domain);
         if (transformLoader == null) {
             transformLoader = storeIfAbsent(domain, createLoaderForDomain(domain));
+            if (closed.get()) {
+                // This replacer was closed while setting up a loader.
+                // The transformLoader might be inserted into the loaders map after close(), so let's close it for sure to
+                // avoid leakages.
+                IoActions.closeQuietly(transformLoader);
+                // Throw the exception so the caller doesn't see the obviously closed loader.
+                ensureOpened();
+            }
         }
         return transformLoader;
     }
 
     private Loader createLoaderForDomain(ProtectionDomain domain) {
         File transformedJarPath = findTransformedFile(domain);
-        return transformedJarPath != null ? new JarLoader(transformedJarPath) : SKIP_INSTRUMENTATION;
+        return transformedJarPath != null ? new JarLoader(transformedJarPath) : skipInstrumentation;
     }
 
     private Loader storeIfAbsent(ProtectionDomain domain, Loader newLoader) {
@@ -102,8 +111,18 @@ public class TransformReplacer implements Closeable {
 
     @Override
     public void close() {
+        if (!closed.compareAndSet(false, true)) {
+            // Already closed.
+            return;
+        }
         for (Loader value : loaders.values()) {
             IoActions.closeQuietly(value);
+        }
+    }
+
+    private void ensureOpened() {
+        if (closed.get()) {
+            throw new IllegalStateException("Cannot load the transformed class, the replacer is closed");
         }
     }
 
@@ -123,9 +142,10 @@ public class TransformReplacer implements Closeable {
         }
     }
 
-    private static class Loader implements Closeable {
-        @CheckForNull
+    private class Loader implements Closeable {
+        @Nullable
         public byte[] loadTransformedClass(String className) throws IOException {
+            ensureOpened();
             return null;
         }
 
@@ -133,18 +153,20 @@ public class TransformReplacer implements Closeable {
         public void close() {}
     }
 
-    private static class JarLoader extends Loader {
+    private class JarLoader extends Loader {
         private final File jarFilePath;
-        private JarFile jarFile;
+        private @Nullable JarFile jarFile;
 
         public JarLoader(File transformedJarFile) {
             jarFilePath = transformedJarFile;
         }
 
         @Override
-        @CheckForNull
+        @Nullable
         public synchronized byte[] loadTransformedClass(String className) throws IOException {
             JarFile jarFile = getJarFileLocked();
+            // From this point it is safe to load the bytes even if somebody attempts to close the replacer.
+            // The close() on this loader will block until this method completes.
             JarEntry classEntry = jarFile.getJarEntry(classNameToPath(className));
             if (classEntry == null) {
                 return null;
@@ -163,13 +185,14 @@ public class TransformReplacer implements Closeable {
         }
 
         private JarFile getJarFileLocked() throws IOException {
+            ensureOpened();
             if (jarFile == null) {
                 jarFile = new JarFile(jarFilePath);
             }
             return jarFile;
         }
 
-        private static String classNameToPath(String className) {
+        private String classNameToPath(String className) {
             return className + ".class";
         }
     }
