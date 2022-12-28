@@ -17,6 +17,7 @@
 package org.gradle.internal.normalization.java
 
 import org.gradle.test.fixtures.condition.TestPrecondition
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.junit.Assume
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
@@ -274,7 +275,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
     }
 
     void "target binary compatibility is maintained"() {
-        Assume.assumeFalse(target == "1.6" && !TestPrecondition.SUPPORTS_TARGETING_JAVA6.fulfilled)
+        Assume.assumeFalse(target == "1.6" && TestPrecondition.doSatisfies(UnitTestPreconditions.Jdk6OrLater))
 
         given:
         def api = toApi(target, [A: 'public class A {}'])
