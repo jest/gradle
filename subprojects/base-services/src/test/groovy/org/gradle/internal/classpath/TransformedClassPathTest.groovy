@@ -148,6 +148,30 @@ class TransformedClassPathTest extends Specification {
         cp.findTransformedJarFor(file("2.jar")) == null
     }
 
+    def "removeIf is applied to original jars"() {
+        given:
+        TransformedClassPath cp = transformedClassPath("1.jar": "t1.jar", "2.jar": "t2.jar")
+
+        when:
+        TransformedClassPath filtered = cp.removeIf { it == file("1.jar") }
+
+        then:
+        filtered.asFiles == [file("2.jar")]
+        filtered.findTransformedJarFor(file("1.jar")) == null
+    }
+
+    def "removeIf is not applied to transformed jars"() {
+        given:
+        TransformedClassPath cp = transformedClassPath("1.jar": "t1.jar", "2.jar": "t2.jar")
+
+        when:
+        TransformedClassPath filtered = cp.removeIf { it == file("t1.jar") }
+
+        then:
+        filtered.asFiles == [file("1.jar"), file("2.jar")]
+        filtered.findTransformedJarFor(file("1.jar")) == file("t1.jar")
+    }
+
     private static File file(String path) {
         return new File(path)
     }
