@@ -10,8 +10,6 @@ Include only their name, impactful features should be called out separately belo
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
 
-[Yanshun Li)(https://github.com/Chaoba).
-
 ## Upgrade instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
@@ -25,21 +23,6 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 ## New features and usability improvements
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
-
-### Gradle Wrapper
-
-#### Introduced labels for selecting the version 
-
-The [`--gradle-version`](userguide/gradle_wrapper.html#sec:adding_wrapper) parameter for the wrapper plugin 
-now supports using predefined labels to select a version.
-
-The allowed labels are:
-- `latest`
-- `release-candidate`
-- `nightly`
-- `release-nightly`
-
-More details can be found in the [Gradle Wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper) section.
 
 <!--
 
@@ -67,11 +50,7 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-### Configuration cache improvements
 
-TODO - Java lambdas are supported, and unsupported captured values are reported.
-TODO - File collections queried at configuration time are treated as configuration inputs.
-TODO - File system repositories are fully supported including dynamic versions in Maven, Maven local, and Ivy repositories  
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
